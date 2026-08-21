@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# PyTorch
+*.pt
+*.pth
+
+# ONNX
+*.onnx
+
+# Toolchain specific
+*.vnnlib
+
+# macOS
+.DS_Store

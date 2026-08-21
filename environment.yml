@@ -1,0 +1,16 @@
+name: neurosym-mlops
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.9
+  - pytorch
+  - cpuonly
+  - numpy
+  - pytest
+  - pip
+  - pip:
+    - cvc5
+    - onnx
+    # - maraboupy # Uncomment if available via pip, otherwise install from source

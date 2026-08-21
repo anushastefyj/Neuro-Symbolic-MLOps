@@ -1,0 +1,8 @@
+torch
+numpy
+pytest
+cvc5
+onnx
+onnxscript
+# maraboupy if available on Windows, else see docs
+maraboupy
