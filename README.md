@@ -47,3 +47,12 @@ python scripts/check_tools.py
    ```bash
    python src/export_onnx.py
    ```
+
+## Troubleshooting
+
+**Marabou Installation on Windows**
+When running `scripts/check_tools.py` on Windows, you may encounter an error stating `No module named 'maraboupy'`. This occurs because official support for `maraboupy` on Windows has been discontinued, and `pip install maraboupy` fails as there are no pre-built binaries available for Windows. 
+
+To use Marabou, you should either:
+1. Run the project in a Linux environment (like WSL - Windows Subsystem for Linux), where `pip install maraboupy` is supported.
+2. Build `MarabouCore` from source on Windows using CMake and Visual Studio (with C++ workloads), though this is complex and not officially supported.
