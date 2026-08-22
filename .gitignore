@@ -15,8 +15,5 @@ env/
 # ONNX
 *.onnx
 
-# Toolchain specific
-*.vnnlib
-
 # macOS
 .DS_Store

@@ -12,7 +12,9 @@ def get_model_hash(model_path):
     with open(model_path, "rb") as f:
         for byte_block in iter(lambda: f.read(4096), b""):
             sha256_hash.update(byte_block)
-    return sha256_hash.hexdigest()
+    digest = sha256_hash.hexdigest()
+    print(f"Computed model hash (length {len(digest)}): {digest}")
+    return digest
 
 def store_certificate(model_path, property_id, proof_data, result, solver_version="cvc5"):
     """

@@ -1,0 +1,133 @@
+name: Neuro-Symbolic MLOps CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: pip install torch onnx
+        
+      - name: Train and Export Model
+        run: |
+          python src/train.py
+          python src/export_onnx.py
+          
+      - name: Upload Models
+        uses: actions/upload-artifact@v4
+        with:
+          name: models
+          path: models/
+
+  verify:
+    needs: train
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download Models
+        uses: actions/download-artifact@v4
+        with:
+          name: models
+          path: models/
+          
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install cvc5
+        run: |
+          wget https://github.com/cvc5/cvc5/releases/download/cvc5-1.1.2/cvc5-Linux-x86_64 -O cvc5
+          chmod +x cvc5
+          sudo mv cvc5 /usr/local/bin/
+          
+      - name: Run Verification
+        run: python src/verify.py models/toy_model.pt properties/toy_property.vnnlib
+          
+      - name: Upload Certificates
+        uses: actions/upload-artifact@v4
+        with:
+          name: certificates
+          path: certificates/
+
+  gate:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          
+      - name: Download Models
+        uses: actions/download-artifact@v4
+        with:
+          name: models
+          path: models/
+          
+      - name: Download Certificates
+        uses: actions/download-artifact@v4
+        with:
+          name: certificates
+          path: certificates/
+          
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install Carcara
+        run: cargo install --git https://github.com/ufmg-smite/carcara.git
+          
+      - name: Run Formal Verification Gate
+        id: gate
+        run: |
+          if ! python src/gate.py models/toy_model.onnx properties/toy_property.vnnlib certificates; then
+            echo "Gate failed! Independent proof checker rejected the certificate." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+      - name: Create Issue on Failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "🚨 CI Gate Failed: Formal Verification Rejected" \
+            --body "The independent proof checker rejected the model certificate in run $GITHUB_RUN_ID. Review the logs for details."
+            
+      - name: Commit Certificates on Success
+        if: success()
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git lfs install
+          git add certificates/
+          git commit -m "chore: auto-commit generated certificates [skip ci]" || echo "No changes to commit"
+          git push
+
+  deploy:
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Deploy
+        run: echo "🚀 Model formally verified and successfully deployed!"
