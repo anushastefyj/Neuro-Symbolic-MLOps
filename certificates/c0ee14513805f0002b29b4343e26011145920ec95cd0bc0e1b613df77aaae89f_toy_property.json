@@ -1,0 +1,8 @@
+{
+    "model_hash": "c0ee14513805f0002b29b4343e26011145920ec95cd0bc0e1b613df77aaae89f",
+    "property_id": "toy_property",
+    "solver": "cvc5",
+    "result": "UNSAT",
+    "timestamp": "2026-08-22T21:51:08.741069",
+    "proof_file": "c0ee14513805f0002b29b4343e26011145920ec95cd0bc0e1b613df77aaae89f_toy_property.alethe"
+}
